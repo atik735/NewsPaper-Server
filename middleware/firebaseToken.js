@@ -7,9 +7,7 @@ admin.initializeApp({
 });
 
 
-
-
-///////////////////////////////////////////////
+// //////
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
