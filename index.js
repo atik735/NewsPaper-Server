@@ -71,7 +71,7 @@ async function run() {
         res.status(500).send({ message: "Failed to fetch user" });
       }
     });
-    //get a users role
+    //get a users role 
 
 app.get('/user/role/:email', async(req,res)=>{
 
