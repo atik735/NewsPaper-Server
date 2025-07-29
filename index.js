@@ -157,7 +157,7 @@ app.patch("/user/profile/:id", async (req, res) => {
     });
 
     // SUBSCRIPTION ROUTES
-    app.post("/subscription", verifyToken, async (req, res) => {
+    app.post("/subscription", async (req, res) => {
       const { email, period } = req.body; 
       if (!email || !period) {
         return res.status(400).send({ message: "Email and period are required" });
@@ -196,7 +196,7 @@ app.post("/articles", async (req, res) => {
     return res.status(400).send({ message: "Author email is required" });
   }
 
-  //find user data
+  // find user data
   const author = await usersCollection.findOne({ email: article.authorEmail });
   if (!author) {
     return res.status(404).send({ message: "Author not found" });
@@ -253,7 +253,7 @@ app.post("/articles", async (req, res) => {
     });
 
     // Show single Article + premium check + increase views
-app.get("/articles/:id", verifyToken, async (req, res) => {
+app.get("/articles/:id", async (req, res) => {
   const id = req.params.id;
   const email = req.query.email; 
 
@@ -332,7 +332,7 @@ app.get("/articles/:id", verifyToken, async (req, res) => {
       res.send(result);
     });
 
-    app.get('/myarticles', verifyToken, async (req, res) => {
+    app.get('/myarticles', async (req, res) => {
       const email = req.query.email;
       if (!email) {
         return res.status(400).send({ message: 'Email is required' });
