@@ -30,9 +30,8 @@ async function run() {
     const usersCollection = client.db("articlesDB").collection("users");
     const publishersCollection = client.db("articlesDB").collection("publishers");
 
-
     // USER ROUTES
-
+    
     app.post('/user', async(req, res)=>{
       const userData = req.body
       userData.role = 'customer'
