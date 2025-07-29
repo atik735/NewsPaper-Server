@@ -3,7 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const stripe = require('stripe')(process.env.STRIPE_SK_KEY);
- 
+ const verifyToken = require('./middleware/firebaseToken');
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -156,7 +157,7 @@ app.patch("/user/profile/:id", async (req, res) => {
     });
 
     // SUBSCRIPTION ROUTES
-    app.post("/subscription", async (req, res) => {
+    app.post("/subscription", verifyToken, async (req, res) => {
       const { email, period } = req.body; 
       if (!email || !period) {
         return res.status(400).send({ message: "Email and period are required" });
@@ -195,17 +196,17 @@ app.post("/articles", async (req, res) => {
     return res.status(400).send({ message: "Author email is required" });
   }
 
-  // ইউজারের ডেটা বের করি
+  // find user data
   const author = await usersCollection.findOne({ email: article.authorEmail });
   if (!author) {
     return res.status(404).send({ message: "Author not found" });
   }
 
-  // প্রিমিয়াম স্ট্যাটাস চেক
+  // premium status check
   const isPremiumActive =
     author?.premiumTaken && new Date(author.premiumTaken) > new Date();
 
-  // যদি প্রিমিয়াম না থাকে → ইউজারের পোস্ট সংখ্যা চেক করব
+  // if not taken premium check users post
   if (!isPremiumActive) {
     const existingArticles = await articlesCollection.countDocuments({
       authorEmail: article.authorEmail,
@@ -218,7 +219,7 @@ app.post("/articles", async (req, res) => {
     }
   }
 
-  // সব ঠিক থাকলে আর্টিকেল সেট করে দিই
+  // article set
   article.authorName = author.name;
   article.authorEmail = author.email;
   article.authorImage = author.image;
@@ -252,7 +253,7 @@ app.post("/articles", async (req, res) => {
     });
 
     // Show single Article + premium check + increase views
-app.get("/articles/:id", async (req, res) => {
+app.get("/articles/:id", verifyToken, async (req, res) => {
   const id = req.params.id;
   const email = req.query.email; 
 
@@ -331,7 +332,7 @@ app.get("/articles/:id", async (req, res) => {
       res.send(result);
     });
 
-    app.get('/myarticles', async (req, res) => {
+    app.get('/myarticles', verifyToken, async (req, res) => {
       const email = req.query.email;
       if (!email) {
         return res.status(400).send({ message: 'Email is required' });
