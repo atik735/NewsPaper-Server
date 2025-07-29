@@ -196,7 +196,7 @@ app.post("/articles", async (req, res) => {
     return res.status(400).send({ message: "Author email is required" });
   }
 
-  // find user data
+  //find user data
   const author = await usersCollection.findOne({ email: article.authorEmail });
   if (!author) {
     return res.status(404).send({ message: "Author not found" });
