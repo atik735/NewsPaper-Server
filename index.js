@@ -7,11 +7,11 @@ const stripe = require('stripe')(process.env.STRIPE_SK_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
+//Middleware
 app.use(cors());
 app.use(express.json());
 
-// MongoDB client setup
+//MongoDB client setup
 const client = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -31,7 +31,7 @@ async function run() {
     const publishersCollection = client.db("articlesDB").collection("publishers");
 
     // USER ROUTES
-    
+
     app.post('/user', async(req, res)=>{
       const userData = req.body
       userData.role = 'customer'
@@ -73,7 +73,6 @@ async function run() {
     //get a users role 
 
 app.get('/user/role/:email', async(req,res)=>{
-
   const email = req.params.email;
   const result = await usersCollection.findOne({email})
   if (!result) return res.status(404).send({message: 'User Not Found'})
@@ -196,11 +195,30 @@ app.post("/articles", async (req, res) => {
     return res.status(400).send({ message: "Author email is required" });
   }
 
+  // ইউজারের ডেটা বের করি
   const author = await usersCollection.findOne({ email: article.authorEmail });
   if (!author) {
     return res.status(404).send({ message: "Author not found" });
   }
 
+  // প্রিমিয়াম স্ট্যাটাস চেক
+  const isPremiumActive =
+    author?.premiumTaken && new Date(author.premiumTaken) > new Date();
+
+  // যদি প্রিমিয়াম না থাকে → ইউজারের পোস্ট সংখ্যা চেক করব
+  if (!isPremiumActive) {
+    const existingArticles = await articlesCollection.countDocuments({
+      authorEmail: article.authorEmail,
+    });
+
+    if (existingArticles >= 1) {
+      return res
+        .status(403)
+        .send({ message: "Normal users can only publish 1 article." });
+    }
+  }
+
+  // সব ঠিক থাকলে আর্টিকেল সেট করে দিই
   article.authorName = author.name;
   article.authorEmail = author.email;
   article.authorImage = author.image;
