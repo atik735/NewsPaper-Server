@@ -188,7 +188,7 @@ app.patch("/user/profile/:id", async (req, res) => {
       }
     });
 
-    // ARTICLE ROUTES
+    //ARTICLE ROUTES
 app.post("/articles", async (req, res) => {
   const article = req.body;
   if (!article.authorEmail) {
