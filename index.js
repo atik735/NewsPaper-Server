@@ -6,7 +6,7 @@ const stripe = require('stripe')(process.env.STRIPE_SK_KEY);
 
 const app = express();
 const port = process.env.PORT || 5000;
-
+ 
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -22,7 +22,7 @@ const client = new MongoClient(process.env.MONGODB_URI, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     console.log("Connected to MongoDB");
 
     // Collections
@@ -31,9 +31,7 @@ async function run() {
     const publishersCollection = client.db("articlesDB").collection("publishers");
 
 
-    // ================================
     // USER ROUTES
-    // ================================
 
     app.post('/user', async(req, res)=>{
       const userData = req.body
@@ -104,9 +102,7 @@ app.get('/user/role/:email', async(req,res)=>{
   res.send(result);
 });
 
-// ================================
 // PROFILE UPDATE ROUTE
-// ================================
 app.patch("/user/profile/:id", async (req, res) => {
   const id = req.params.id;
   if (!ObjectId.isValid(id)) {
@@ -114,8 +110,8 @@ app.patch("/user/profile/:id", async (req, res) => {
   }
 
   const updateData = req.body;
-  delete updateData._id;   // এখানে _id মুছে ফেলছি
-  delete updateData.email; // চাইলে email-ও মুছে দাও, যাতে change না হয়
+  delete updateData._id;   
+  delete updateData.email; 
 
   try {
     const result = await usersCollection.updateOne(
@@ -161,9 +157,7 @@ app.patch("/user/profile/:id", async (req, res) => {
       }
     });
 
-    // ================================
     // SUBSCRIPTION ROUTES
-    // ================================
     app.post("/subscription", async (req, res) => {
       const { email, period } = req.body; 
       if (!email || !period) {
@@ -196,16 +190,13 @@ app.patch("/user/profile/:id", async (req, res) => {
       }
     });
 
-    // ================================
     // ARTICLE ROUTES
-    // ================================
 app.post("/articles", async (req, res) => {
   const article = req.body;
   if (!article.authorEmail) {
     return res.status(400).send({ message: "Author email is required" });
   }
 
-  // user থেকে author এর তথ্য নিয়ে আসা
   const author = await usersCollection.findOne({ email: article.authorEmail });
   if (!author) {
     return res.status(404).send({ message: "Author not found" });
@@ -243,10 +234,10 @@ app.post("/articles", async (req, res) => {
       }
     });
 
-    // একক আর্টিকেল দেখানো + প্রিমিয়াম চেক + views বাড়ানো
+    // Show single Article + premium check + increase views
 app.get("/articles/:id", async (req, res) => {
   const id = req.params.id;
-  const email = req.query.email; // frontend থেকে পাঠানো হবে
+  const email = req.query.email; 
 
   try {
     const article = await articlesCollection.findOne({ _id: new ObjectId(id) });
@@ -262,7 +253,7 @@ app.get("/articles/:id", async (req, res) => {
       }
     }
 
-    // views বাড়ানো
+    // views increase
     await articlesCollection.updateOne(
       { _id: new ObjectId(id) },
       { $inc: { views: 1 } }
@@ -469,16 +460,14 @@ app.delete("/publishers/:id", async (req, res) => {
 
 
 
-    // ================================
     // BACKGROUND JOB: AUTO-EXPIRE PREMIUM
-    // ================================
     setInterval(async () => {
       const now = new Date();
       await usersCollection.updateMany(
         { premiumTaken: { $lte: now } },
         { $set: { premiumTaken: null } }
       );
-    }, 60 * 1000); // প্রতি ১ মিনিটে চেক করবে
+    }, 60 * 1000); // check every 1 min
 
   } catch (error) {
     console.error("MongoDB connection error:", error);
