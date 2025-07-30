@@ -360,32 +360,28 @@ app.get("/articles/:id", async (req, res) => {
       }
     });
 
-app.put('/myarticles/:id', async (req, res) => {
-  const id = req.params.id;
-  const updateData = req.body;
+    app.put('/myarticles/:id', async (req, res) => {
+      const id = req.params.id;
+      const updateData = req.body;
 
-  try {
-    const result = await articlesCollection.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          title: updateData.title,
-          description: updateData.description,
-          image: updateData.image,        // ✅ এখন image যাবে
-          publisher: updateData.publisher,// ✅ publisher যাবে
-          tags: updateData.tags,
-          updatedAt: new Date()
-        }
+      try {
+        const result = await articlesCollection.updateOne(
+          { _id: new ObjectId(id) },
+          {
+            $set: {
+              title: updateData.title,
+              description: updateData.description,
+              tags: updateData.tags,
+              updatedAt: new Date()
+            }
+          }
+        );
+        res.send(result);
+      } catch (err) {
+        console.error('Error updating article:', err);
+        res.status(500).send({ message: 'Failed to update article' });
       }
-    );
-    res.send(result);
-  } catch (err) {
-    console.error('Error updating article:', err);
-    res.status(500).send({ message: 'Failed to update article' });
-  }
-});
-
-
+    });
 
     app.delete('/articles/:id', async (req, res) => {
       const id = req.params.id;
